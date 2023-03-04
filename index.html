@@ -31,26 +31,24 @@
     <script>
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(
-            40,
-            window.innerWidth / window.innerHeight,
-            0.1,
-            1000
+          40,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
         );
         const renderer = new THREE.WebGLRenderer();
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-   
         const geometry = new THREE.BoxGeometry();
         const material = new THREE.MeshStandardMaterial({
-            color: 0xffffff, 
-            metalness: 0.5,
-            roughness: 0.1 
+          color: 0xffffff,
+          metalness: 0.5,
+          roughness: 0.1,
         });
         const cube = new THREE.Mesh(geometry, material);
         scene.add(cube);
 
-    
         const light = new THREE.DirectionalLight(0xffffff, 1);
         light.position.set(1, 1, 1).normalize();
         scene.add(light);
@@ -60,17 +58,77 @@
 
         camera.position.z = 5;
 
+        let isDragging = false;
+        let previousMousePosition = {
+          x: 0,
+          y: 0,
+        };
+
         function animate() {
-            requestAnimationFrame(animate);
+          requestAnimationFrame(animate);
+          if (!isDragging) {
             cube.rotation.y += 0.004;
-            renderer.render(scene, camera);
+          }
+          renderer.render(scene, camera);
         }
         animate();
-        function onDocumentMouseMove(event) {
-            event.preventDefault();
+
+        function onDocumentMouseDown(event) {
+          event.preventDefault();
+          isDragging = true;
+          previousMousePosition = {
+            x: event.clientX,
+            y: event.clientY,
+          };
         }
 
+        const startQuaternion = cube.quaternion.clone();
+
+        function onDocumentMouseUp(event) {
+          event.preventDefault();
+          isDragging = false;
+
+          cube.quaternion.copy(startQuaternion);
+
+        }
+
+        function onDocumentMouseMove(event) {
+          event.preventDefault();
+          if (isDragging) {
+            const deltaMove = {
+              x: event.clientX - previousMousePosition.x,
+              y: event.clientY - previousMousePosition.y,
+            };
+
+            const deltaRotationQuaternion = new THREE.Quaternion().setFromEuler(
+              new THREE.Euler(
+                toRadians(deltaMove.y * 1),
+                toRadians(deltaMove.x * 1),
+                0,
+                "XYZ"
+              )
+            );
+
+            cube.quaternion.multiplyQuaternions(
+              deltaRotationQuaternion,
+              cube.quaternion
+            );
+
+            previousMousePosition = {
+              x: event.clientX,
+              y: event.clientY,
+            };
+          }
+        }
+
+        function toRadians(angle) {
+          return angle * (Math.PI / 180);
+        }
+
+        document.addEventListener("mousedown", onDocumentMouseDown);
+        document.addEventListener("mouseup", onDocumentMouseUp);
         document.addEventListener("mousemove", onDocumentMouseMove);
+
     </script>
   </body>
 </html>
