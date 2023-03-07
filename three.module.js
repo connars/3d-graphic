@@ -49030,13 +49030,13 @@
  
  };
  
- BufferGeometry.prototype.addAttribute = function ( name, attribute ) {
+ BufferGeometry.prototype.setAttribute = function ( name, attribute ) {
  
-     console.warn( 'THREE.BufferGeometry: .addAttribute() has been renamed to .setAttribute().' );
+     console.warn( 'THREE.BufferGeometry: .setAttribute() has been renamed to .setAttribute().' );
  
      if ( ! ( attribute && attribute.isBufferAttribute ) && ! ( attribute && attribute.isInterleavedBufferAttribute ) ) {
  
-         console.warn( 'THREE.BufferGeometry: .addAttribute() now expects ( name, attribute ).' );
+         console.warn( 'THREE.BufferGeometry: .setAttribute() now expects ( name, attribute ).' );
  
          return this.setAttribute( name, new BufferAttribute( arguments[ 1 ], arguments[ 2 ] ) );
  
@@ -49044,7 +49044,7 @@
  
      if ( name === 'index' ) {
  
-         console.warn( 'THREE.BufferGeometry.addAttribute: Use .setIndex() for index attribute.' );
+         console.warn( 'THREE.BufferGeometry.setAttribute: Use .setIndex() for index attribute.' );
          this.setIndex( attribute );
  
          return this;

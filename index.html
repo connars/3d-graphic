@@ -20,115 +20,69 @@
       canvas {
         position: absolute;
         top: 0;
+        width: 1000px;
+        height: 1000px;
         right: 0;
         left: 0;
       }
     </style>
   </head>
   <body>
-    <div id="container"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <div id="container">
+      <canvas id="canvas">
+
+      </canvas>
+    </div>
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.150.1/three.min.js" integrity="sha512-pHIFefLE+ZH/TmpBDxPoDyC8kBxD773LqGShSv9VSiMFLluVRKKOFO9JA+TgnQruQEKovPtZ3vEz1Hwo/F4J2A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="./OBJLoader.js"></script>
+    <script src="./MTLLoader.js"></script>
     <script>
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(
-          40,
-          window.innerWidth / window.innerHeight,
-          0.1,
-          1000
-        );
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+      window.onload = test();
 
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshStandardMaterial({
-          color: 0xffffff,
-          metalness: 0.5,
-          roughness: 0.1,
-        });
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
+      function test() {
+        const canvas = document.getElementById('canvas');
+          const renderer = new THREE.WebGLRenderer({ canvas });
+          renderer.setClearColor(0xffffff);
+          renderer.setSize(canvas.clientWidth, canvas.clientHeight);
 
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(1, 1, 1).normalize();
-        scene.add(light);
+          const scene = new THREE.Scene();
 
-        const ambientLight = new THREE.AmbientLight(0x404040, 1);
-        scene.add(ambientLight);
+          const mtlLoader = new THREE.MTLLoader();
+          mtlLoader.load('/model/camera.mtl', materials => {
+            materials.preload();
 
-        camera.position.z = 5;
+            const objLoader = new THREE.OBJLoader();
+            objLoader.setMaterials(materials);
+            objLoader.load('/model/camera.obj', camera => {
+              scene.add(camera);
+            });
+          });
 
-        let isDragging = false;
-        let previousMousePosition = {
-          x: 0,
-          y: 0,
-        };
+          const camera = new THREE.PerspectiveCamera(
+            75,
+            canvas.clientWidth / canvas.clientHeight,
+            0.1,
+            1000
+          );
+          camera.position.z = 5;
+          scene.add(camera);
 
-        function animate() {
-          requestAnimationFrame(animate);
-          if (!isDragging) {
-            cube.rotation.y += 0.004;
+          const light = new THREE.PointLight(0xffffff, 1, 100);
+          light.position.set(0, 0, 10);
+          scene.add(light);
+
+          function animate() {
+            requestAnimationFrame(animate);
+
+            // rotate the camera or models here if needed
+
+            renderer.render(scene, camera);
           }
-          renderer.render(scene, camera);
-        }
-        animate();
 
-        function onDocumentMouseDown(event) {
-          event.preventDefault();
-          isDragging = true;
-          previousMousePosition = {
-            x: event.clientX,
-            y: event.clientY,
-          };
-        }
-
-        const startQuaternion = cube.quaternion.clone();
-
-        function onDocumentMouseUp(event) {
-          event.preventDefault();
-          isDragging = false;
-
-          cube.quaternion.copy(startQuaternion);
-
-        }
-
-        function onDocumentMouseMove(event) {
-          event.preventDefault();
-          if (isDragging) {
-            const deltaMove = {
-              x: event.clientX - previousMousePosition.x,
-              y: event.clientY - previousMousePosition.y,
-            };
-
-            const deltaRotationQuaternion = new THREE.Quaternion().setFromEuler(
-              new THREE.Euler(
-                toRadians(deltaMove.y * 1),
-                toRadians(deltaMove.x * 1),
-                0,
-                "XYZ"
-              )
-            );
-
-            cube.quaternion.multiplyQuaternions(
-              deltaRotationQuaternion,
-              cube.quaternion
-            );
-
-            previousMousePosition = {
-              x: event.clientX,
-              y: event.clientY,
-            };
-          }
-        }
-
-        function toRadians(angle) {
-          return angle * (Math.PI / 180);
-        }
-
-        document.addEventListener("mousedown", onDocumentMouseDown);
-        document.addEventListener("mouseup", onDocumentMouseUp);
-        document.addEventListener("mousemove", onDocumentMouseMove);
-
+          animate();
+      }
+         
     </script>
   </body>
 </html>
